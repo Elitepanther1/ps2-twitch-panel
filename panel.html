@@ -41,12 +41,48 @@
     .value {
       font-weight: bold;
     }
+	  .panel.vs {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.panel.nc {
+  border-color: #3b82f6;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.panel.tr {
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.faction {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.faction img {
+  width: 48px;
+  height: auto;
+  margin-bottom: 4px;
+}
+
+.faction-name {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
   </style>
 </head>
 <body>
 
   <div class="panel">
     <div class="title">Planetside 2 Stats</div>
+	  <div class="faction">
+  		<img id="factionLogo" src="" alt="Faction Logo" />
+  		<div id="factionName" class="faction-name"></div>
+		</div>
+
 
     <div class="stat"><span class="label">Name</span><span id="name" class="value">Loading...</span></div>
     <div class="stat"><span class="label">Battle Rank</span><span id="br" class="value">-</span></div>
@@ -58,33 +94,68 @@
   </div>
 
   <script>
-    const CHARACTER_NAME = "BeanFilledWhackBonk";
-    const API_URL = "https://ps2-stats-api.vercel.app/api/character?name=" + CHARACTER_NAME;
+  const CHARACTER_NAME = "BeanFilledWhackBonk";
+  const API_URL = "https://ps2-stats-api.vercel.app/api/character?name=" + CHARACTER_NAME;
 
-    async function loadStats() {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-	console.log(data);
+  async function loadStats() {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
 
-        document.getElementById("name").textContent = data.name;
-        document.getElementById("br").textContent = data.battleRank;
-        document.getElementById("kills").textContent = data.kills.toLocaleString();
-        document.getElementById("deaths").textContent = data.deaths.toLocaleString();
-        document.getElementById("kd").textContent = data.kd;
-        document.getElementById("headshots").textContent = data.headshots.toLocaleString();
-        document.getElementById("playtime").textContent = data.playtimeHours + " hrs";
+      if (!data || data.error) throw new Error("API error");
 
-      } catch (err) {
-        document.querySelector(".panel").innerHTML = "Error loading stats";
+      const stats = data.stats || {};
+
+      const kills = stats.kills || 0;
+      const deaths = stats.deaths || 0;
+      const headshots = stats.headshots || 0;
+      const playtimeSeconds = stats.playtime || 0;
+
+      const kd = deaths > 0 ? (kills / deaths).toFixed(2) : "∞";
+      const playtimeHours = (playtimeSeconds / 3600).toFixed(1);
+
+      document.getElementById("name").textContent = data.name;
+      document.getElementById("br").textContent = data.battleRank;
+      document.getElementById("kills").textContent = kills.toLocaleString();
+      document.getElementById("deaths").textContent = deaths.toLocaleString();
+      document.getElementById("kd").textContent = kd;
+      document.getElementById("headshots").textContent = headshots.toLocaleString();
+      document.getElementById("playtime").textContent = playtimeHours + " hrs";
+
+      // FACTION LOGIC
+      const panel = document.querySelector(".panel");
+      const factionLogo = document.getElementById("factionLogo");
+      const factionName = document.getElementById("factionName");
+
+      panel.classList.remove("vs", "nc", "tr");
+
+      if (data.factionId === 1) {
+        panel.classList.add("vs");
+        factionName.textContent = "VANU SOVEREIGNTY";
+        factionLogo.src = "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/vs.png";
+      } 
+      else if (data.factionId === 2) {
+        panel.classList.add("nc");
+        factionName.textContent = "NEW CONGLOMERATE";
+        factionLogo.src = "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/nc.png";
+      } 
+      else if (data.factionId === 3) {
+        panel.classList.add("tr");
+        factionName.textContent = "TERRAN REPUBLIC";
+        factionLogo.src = "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/tr.png";
       }
+
+    } catch (err) {
+      console.error(err);
+      document.querySelector(".panel").innerHTML =
+        "<div style='text-align:center;color:#f87171;'>Stats unavailable</div>";
     }
+  }
 
-    loadStats();
-
-    // Auto refresh every 60 seconds
-    setInterval(loadStats, 60000);
-  </script>
+  loadStats();
+  setInterval(loadStats, 60000);
+</script>
 
 </body>
 </html>
+
