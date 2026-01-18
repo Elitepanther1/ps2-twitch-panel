@@ -85,12 +85,6 @@ const CHARACTERS = charsParam
 
 const API = "https://ps2-stats-api.vercel.app/api/character?name=";
 
-const FACTIONS = {
-  1: { color:"#7B3FE4", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/vs.png" },
-  2: { color:"#1F6AE1", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/nc.png" },
-  3: { color:"#C62828", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/tr.png" }
-};
-
 async function fetchChar(name) {
   const res = await fetch(API + name);
   return await res.json();
@@ -98,44 +92,40 @@ async function fetchChar(name) {
 
 async function loadStats() {
   try {
-    let active = null;
+    let activeChar = null;
 
     for (const name of CHARACTERS) {
       const data = await fetchChar(name);
-      if (data.isOnline) {
-        active = data;
+
+      // pick the first ONLINE character
+      if (data.online) {
+        activeChar = data;
         break;
       }
-      if (!active) active = data;
+
+      // fallback to first offline character
+      if (!activeChar) activeChar = data;
     }
 
-    const stats = active.stats || {};
-    const kills = stats.kills || 0;
-    const deaths = stats.deaths || 0;
-    const kd = deaths > 0 ? (kills / deaths).toFixed(2) : "∞";
-    const playtime = ((stats.playtime || 0) / 3600).toFixed(1);
+    if (!activeChar) throw new Error("No character data");
 
-    document.getElementById("charName").textContent = active.name;
-    document.getElementById("battleRank").textContent = "BR " + active.battleRank;
+    document.getElementById("charName").textContent = activeChar.name;
+    document.getElementById("battleRank").textContent = "BR " + activeChar.battleRank;
 
-    document.getElementById("kills").textContent = kills;
-    document.getElementById("deaths").textContent = deaths;
-    document.getElementById("kd").textContent = kd;
-    document.getElementById("headshots").textContent = stats.headshots || 0;
-    document.getElementById("playtime").textContent = playtime + " hrs";
+    document.getElementById("kills").textContent = activeChar.kills;
+    document.getElementById("deaths").textContent = activeChar.deaths;
+    document.getElementById("kd").textContent = activeChar.kd;
+    document.getElementById("headshots").textContent = activeChar.headshots;
+    document.getElementById("playtime").textContent =
+      activeChar.playtimeHours + " hrs";
 
     const status = document.getElementById("onlineStatus");
-    status.textContent = active.isOnline ? "🟢 ONLINE" : "⚫ OFFLINE";
-    status.className = active.isOnline ? "online" : "offline";
+    status.textContent = activeChar.online ? "🟢 ONLINE" : "⚫ OFFLINE";
+    status.className = activeChar.online ? "online" : "offline";
 
-    const faction = FACTIONS[active.factionId];
-    if (faction) {
-      document.querySelector(".panel").style.borderLeft = "6px solid " + faction.color;
-      document.getElementById("factionLogo").src = faction.logo;
-    }
-
-  } catch {
+  } catch (err) {
     document.body.innerHTML = "Stats unavailable";
+    console.error(err);
   }
 }
 
@@ -144,3 +134,4 @@ setInterval(loadStats, 60000);
 </script>
 </body>
 </html>
+
