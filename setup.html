@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Planetside 2 Panel Setup</title>
+
+<style>
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0f1117;
+  color: white;
+  padding: 30px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.output {
+  margin-top: 20px;
+  word-break: break-all;
+  background: #1f2937;
+  padding: 10px;
+  border-radius: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Planetside 2 Twitch Panel Setup</h2>
+
+<p>
+Enter your character names separated by commas:
+</p>
+
+<input id="chars" placeholder="Hellbirdgunner, AltCharacter, AnotherAlt">
+
+<button onclick="generate()">Generate Panel Link</button>
+
+<div class="output" id="result"></div>
+
+<script>
+function generate() {
+  const chars = document.getElementById("chars").value
+    .split(",")
+    .map(c => c.trim())
+    .filter(Boolean);
+
+  if (chars.length === 0) {
+    alert("Please enter at least one character name.");
+    return;
+  }
+
+  const url =
+    location.origin +
+    location.pathname.replace("setup.html", "panel.html") +
+    "?chars=" + encodeURIComponent(chars.join(","));
+
+  document.getElementById("result").innerHTML =
+    "<strong>Copy this URL into your Twitch panel:</strong><br><br>" +
+    url;
+}
+</script>
+
+</body>
+</html>
