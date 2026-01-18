@@ -23,7 +23,6 @@ body {
 
 .header {
   display: flex;
-  align-items: center;
   gap: 10px;
   border-bottom: 1px solid rgba(255,255,255,0.2);
   padding-bottom: 8px;
@@ -42,7 +41,6 @@ body {
 
 .header span {
   font-size: 12px;
-  opacity: 0.85;
   display: block;
 }
 
@@ -50,7 +48,6 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 4px 0;
-  font-size: 14px;
 }
 
 .online { color: #22c55e; font-weight: bold; }
@@ -61,31 +58,32 @@ body {
 <body>
 <div class="panel">
   <div class="header">
-    <img id="factionLogo" />
+    <img id="factionLogo">
     <div>
-      <h1 id="charName">Loading...</h1>
+      <h1 id="charName">Loading…</h1>
       <span id="battleRank"></span>
-      <span id="onlineStatus">Checking…</span>
+      <span id="onlineStatus"></span>
     </div>
   </div>
 
   <div class="stats">
     <div><span>Kills</span><b id="kills">0</b></div>
     <div><span>Deaths</span><b id="deaths">0</b></div>
-    <div><span>K/D</span><b id="kd">0.00</b></div>
+    <div><span>K/D</span><b id="kd">0</b></div>
     <div><span>Headshots</span><b id="headshots">0</b></div>
     <div><span>Playtime</span><b id="playtime">0 hrs</b></div>
   </div>
 </div>
 
 <script>
-const CHARACTERS = [
-  "Hellbirdgunner",
-  "YourAltCharacter",
-  "AnotherAlt"
-];
+const params = new URLSearchParams(window.location.search);
+const charsParam = params.get("chars");
 
-const API_BASE = "https://ps2-stats-api.vercel.app/api/character?name=";
+const CHARACTERS = charsParam
+  ? charsParam.split(",").map(c => c.trim())
+  : [];
+
+const API = "https://ps2-stats-api.vercel.app/api/character?name=";
 
 const FACTIONS = {
   1: { color:"#7B3FE4", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/vs.png" },
@@ -93,59 +91,51 @@ const FACTIONS = {
   3: { color:"#C62828", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/tr.png" }
 };
 
-async function fetchCharacter(name) {
-  const res = await fetch(API_BASE + name);
+async function fetchChar(name) {
+  const res = await fetch(API + name);
   return await res.json();
 }
 
 async function loadStats() {
   try {
-    let activeCharacter = null;
+    let active = null;
 
     for (const name of CHARACTERS) {
-      const data = await fetchCharacter(name);
+      const data = await fetchChar(name);
       if (data.isOnline) {
-        activeCharacter = data;
+        active = data;
         break;
       }
-      if (!activeCharacter) activeCharacter = data;
+      if (!active) active = data;
     }
 
-    const stats = activeCharacter.stats || {};
-
+    const stats = active.stats || {};
     const kills = stats.kills || 0;
     const deaths = stats.deaths || 0;
-    const headshots = stats.headshots || 0;
-    const playtime = ((stats.playtime || 0) / 3600).toFixed(1);
     const kd = deaths > 0 ? (kills / deaths).toFixed(2) : "∞";
+    const playtime = ((stats.playtime || 0) / 3600).toFixed(1);
 
-    document.getElementById("charName").textContent = activeCharacter.name;
-    document.getElementById("battleRank").textContent = "BR " + activeCharacter.battleRank;
+    document.getElementById("charName").textContent = active.name;
+    document.getElementById("battleRank").textContent = "BR " + active.battleRank;
 
-    document.getElementById("kills").textContent = kills.toLocaleString();
-    document.getElementById("deaths").textContent = deaths.toLocaleString();
+    document.getElementById("kills").textContent = kills;
+    document.getElementById("deaths").textContent = deaths;
     document.getElementById("kd").textContent = kd;
-    document.getElementById("headshots").textContent = headshots.toLocaleString();
+    document.getElementById("headshots").textContent = stats.headshots || 0;
     document.getElementById("playtime").textContent = playtime + " hrs";
 
-    const statusEl = document.getElementById("onlineStatus");
-    if (activeCharacter.isOnline) {
-      statusEl.textContent = "🟢 ONLINE";
-      statusEl.className = "online";
-    } else {
-      statusEl.textContent = "⚫ OFFLINE";
-      statusEl.className = "offline";
-    }
+    const status = document.getElementById("onlineStatus");
+    status.textContent = active.isOnline ? "🟢 ONLINE" : "⚫ OFFLINE";
+    status.className = active.isOnline ? "online" : "offline";
 
-    const faction = FACTIONS[activeCharacter.factionId];
+    const faction = FACTIONS[active.factionId];
     if (faction) {
       document.querySelector(".panel").style.borderLeft = "6px solid " + faction.color;
       document.getElementById("factionLogo").src = faction.logo;
     }
 
-  } catch (e) {
-    document.querySelector(".panel").innerHTML =
-      "<div style='text-align:center;color:#f87171;'>Stats unavailable</div>";
+  } catch {
+    document.body.innerHTML = "Stats unavailable";
   }
 }
 
