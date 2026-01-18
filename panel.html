@@ -42,7 +42,8 @@
 
     .header span {
       font-size: 12px;
-      opacity: 0.8;
+      opacity: 0.85;
+      display: block;
     }
 
     .stats div {
@@ -50,6 +51,16 @@
       justify-content: space-between;
       padding: 4px 0;
       font-size: 14px;
+    }
+
+    .online {
+      color: #22c55e;
+      font-weight: bold;
+    }
+
+    .offline {
+      color: #9ca3af;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -61,6 +72,7 @@
       <div>
         <h1 id="charName">Loading...</h1>
         <span id="battleRank"></span>
+        <span id="onlineStatus">Checking status…</span>
       </div>
     </div>
 
@@ -80,17 +92,14 @@
 
     const FACTIONS = {
       1: {
-        name: "Vanu Sovereignty",
         color: "#7B3FE4",
         logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/vs.png"
       },
       2: {
-        name: "New Conglomerate",
         color: "#1F6AE1",
         logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/nc.png"
       },
       3: {
-        name: "Terran Republic",
         color: "#C62828",
         logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/tr.png"
       }
@@ -117,6 +126,7 @@
         document.getElementById("charName").textContent = data.name;
         document.getElementById("battleRank").textContent =
           "BR " + data.battleRank;
+
         document.getElementById("kills").textContent = kills.toLocaleString();
         document.getElementById("deaths").textContent = deaths.toLocaleString();
         document.getElementById("kd").textContent = kd;
@@ -124,6 +134,16 @@
           headshots.toLocaleString();
         document.getElementById("playtime").textContent =
           playtimeHours + " hrs";
+
+        // ONLINE STATUS
+        const statusEl = document.getElementById("onlineStatus");
+        if (data.isOnline) {
+          statusEl.textContent = "🟢 ONLINE";
+          statusEl.className = "online";
+        } else {
+          statusEl.textContent = "⚫ OFFLINE";
+          statusEl.className = "offline";
+        }
 
         // FACTION STYLING
         const faction = FACTIONS[data.factionId];
@@ -145,4 +165,3 @@
   </script>
 </body>
 </html>
-
