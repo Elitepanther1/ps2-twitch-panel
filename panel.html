@@ -1,167 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Planetside 2 Stats</title>
+<meta charset="UTF-8" />
+<title>Planetside 2 Stats</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: transparent;
-      font-family: Arial, Helvetica, sans-serif;
-      color: white;
-    }
+<style>
+body {
+  margin: 0;
+  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+  color: white;
+}
 
-    .panel {
-      width: 320px;
-      background: rgba(15, 15, 20, 0.95);
-      border-radius: 10px;
-      padding: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.6);
-      border-left: 6px solid transparent;
-    }
+.panel {
+  width: 320px;
+  background: rgba(15, 15, 20, 0.95);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.6);
+  border-left: 6px solid transparent;
+}
 
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      padding-bottom: 8px;
-      margin-bottom: 8px;
-    }
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
 
-    .header img {
-      width: 48px;
-      height: 48px;
-    }
+.header img {
+  width: 48px;
+  height: 48px;
+}
 
-    .header h1 {
-      font-size: 16px;
-      margin: 0;
-    }
+.header h1 {
+  font-size: 16px;
+  margin: 0;
+}
 
-    .header span {
-      font-size: 12px;
-      opacity: 0.85;
-      display: block;
-    }
+.header span {
+  font-size: 12px;
+  opacity: 0.85;
+  display: block;
+}
 
-    .stats div {
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 0;
-      font-size: 14px;
-    }
+.stats div {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
 
-    .online {
-      color: #22c55e;
-      font-weight: bold;
-    }
-
-    .offline {
-      color: #9ca3af;
-      font-weight: bold;
-    }
-  </style>
+.online { color: #22c55e; font-weight: bold; }
+.offline { color: #9ca3af; }
+</style>
 </head>
 
 <body>
-  <div class="panel">
-    <div class="header">
-      <img id="factionLogo" />
-      <div>
-        <h1 id="charName">Loading...</h1>
-        <span id="battleRank"></span>
-        <span id="onlineStatus">Checking status…</span>
-      </div>
-    </div>
-
-    <div class="stats">
-      <div><span>Kills</span><b id="kills">0</b></div>
-      <div><span>Deaths</span><b id="deaths">0</b></div>
-      <div><span>K/D</span><b id="kd">0.00</b></div>
-      <div><span>Headshots</span><b id="headshots">0</b></div>
-      <div><span>Playtime</span><b id="playtime">0 hrs</b></div>
+<div class="panel">
+  <div class="header">
+    <img id="factionLogo" />
+    <div>
+      <h1 id="charName">Loading...</h1>
+      <span id="battleRank"></span>
+      <span id="onlineStatus">Checking…</span>
     </div>
   </div>
 
-  <script>
-    const CHARACTER_NAME = "Hellbirdgunner";
-    const API_URL =
-      "https://ps2-stats-api.vercel.app/api/character?name=" + CHARACTER_NAME;
+  <div class="stats">
+    <div><span>Kills</span><b id="kills">0</b></div>
+    <div><span>Deaths</span><b id="deaths">0</b></div>
+    <div><span>K/D</span><b id="kd">0.00</b></div>
+    <div><span>Headshots</span><b id="headshots">0</b></div>
+    <div><span>Playtime</span><b id="playtime">0 hrs</b></div>
+  </div>
+</div>
 
-    const FACTIONS = {
-      1: {
-        color: "#7B3FE4",
-        logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/vs.png"
-      },
-      2: {
-        color: "#1F6AE1",
-        logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/nc.png"
-      },
-      3: {
-        color: "#C62828",
-        logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/tr.png"
+<script>
+const CHARACTERS = [
+  "Hellbirdgunner",
+  "YourAltCharacter",
+  "AnotherAlt"
+];
+
+const API_BASE = "https://ps2-stats-api.vercel.app/api/character?name=";
+
+const FACTIONS = {
+  1: { color:"#7B3FE4", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/vs.png" },
+  2: { color:"#1F6AE1", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/nc.png" },
+  3: { color:"#C62828", logo:"https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/tr.png" }
+};
+
+async function fetchCharacter(name) {
+  const res = await fetch(API_BASE + name);
+  return await res.json();
+}
+
+async function loadStats() {
+  try {
+    let activeCharacter = null;
+
+    for (const name of CHARACTERS) {
+      const data = await fetchCharacter(name);
+      if (data.isOnline) {
+        activeCharacter = data;
+        break;
       }
-    };
-
-    async function loadStats() {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-
-        if (!data || data.error) throw new Error("API error");
-
-        const stats = data.stats || {};
-
-        const kills = stats.kills || 0;
-        const deaths = stats.deaths || 0;
-        const headshots = stats.headshots || 0;
-        const playtimeSeconds = stats.playtime || 0;
-
-        const kd = deaths > 0 ? (kills / deaths).toFixed(2) : "∞";
-        const playtimeHours = (playtimeSeconds / 3600).toFixed(1);
-
-        // BASIC STATS
-        document.getElementById("charName").textContent = data.name;
-        document.getElementById("battleRank").textContent =
-          "BR " + data.battleRank;
-
-        document.getElementById("kills").textContent = kills.toLocaleString();
-        document.getElementById("deaths").textContent = deaths.toLocaleString();
-        document.getElementById("kd").textContent = kd;
-        document.getElementById("headshots").textContent =
-          headshots.toLocaleString();
-        document.getElementById("playtime").textContent =
-          playtimeHours + " hrs";
-
-        // ONLINE STATUS
-        const statusEl = document.getElementById("onlineStatus");
-        if (data.isOnline) {
-          statusEl.textContent = "🟢 ONLINE";
-          statusEl.className = "online";
-        } else {
-          statusEl.textContent = "⚫ OFFLINE";
-          statusEl.className = "offline";
-        }
-
-        // FACTION STYLING
-        const faction = FACTIONS[data.factionId];
-        if (faction) {
-          document.querySelector(".panel").style.borderLeft =
-            "6px solid " + faction.color;
-          document.getElementById("factionLogo").src = faction.logo;
-        }
-
-      } catch (err) {
-        console.error(err);
-        document.querySelector(".panel").innerHTML =
-          "<div style='text-align:center;color:#f87171;'>Stats unavailable</div>";
-      }
+      if (!activeCharacter) activeCharacter = data;
     }
 
-    loadStats();
-    setInterval(loadStats, 60000);
-  </script>
+    const stats = activeCharacter.stats || {};
+
+    const kills = stats.kills || 0;
+    const deaths = stats.deaths || 0;
+    const headshots = stats.headshots || 0;
+    const playtime = ((stats.playtime || 0) / 3600).toFixed(1);
+    const kd = deaths > 0 ? (kills / deaths).toFixed(2) : "∞";
+
+    document.getElementById("charName").textContent = activeCharacter.name;
+    document.getElementById("battleRank").textContent = "BR " + activeCharacter.battleRank;
+
+    document.getElementById("kills").textContent = kills.toLocaleString();
+    document.getElementById("deaths").textContent = deaths.toLocaleString();
+    document.getElementById("kd").textContent = kd;
+    document.getElementById("headshots").textContent = headshots.toLocaleString();
+    document.getElementById("playtime").textContent = playtime + " hrs";
+
+    const statusEl = document.getElementById("onlineStatus");
+    if (activeCharacter.isOnline) {
+      statusEl.textContent = "🟢 ONLINE";
+      statusEl.className = "online";
+    } else {
+      statusEl.textContent = "⚫ OFFLINE";
+      statusEl.className = "offline";
+    }
+
+    const faction = FACTIONS[activeCharacter.factionId];
+    if (faction) {
+      document.querySelector(".panel").style.borderLeft = "6px solid " + faction.color;
+      document.getElementById("factionLogo").src = faction.logo;
+    }
+
+  } catch (e) {
+    document.querySelector(".panel").innerHTML =
+      "<div style='text-align:center;color:#f87171;'>Stats unavailable</div>";
+  }
+}
+
+loadStats();
+setInterval(loadStats, 60000);
+</script>
 </body>
 </html>
