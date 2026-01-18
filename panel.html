@@ -92,40 +92,41 @@ async function fetchChar(name) {
 
 async function loadStats() {
   try {
-    let activeChar = null;
+    let active = null;
 
     for (const name of CHARACTERS) {
       const data = await fetchChar(name);
 
-      // pick the first ONLINE character
-      if (data.online) {
-        activeChar = data;
+      // pick online character first
+      if (data.online === true) {
+        active = data;
         break;
       }
 
-      // fallback to first offline character
-      if (!activeChar) activeChar = data;
+      if (!active) active = data;
     }
 
-    if (!activeChar) throw new Error("No character data");
+    if (!active) throw new Error("No character data");
 
-    document.getElementById("charName").textContent = activeChar.name;
-    document.getElementById("battleRank").textContent = "BR " + activeChar.battleRank;
+    // ✅ DIRECT VALUES (THIS WAS THE BUG)
+    document.getElementById("charName").textContent = active.name;
+    document.getElementById("battleRank").textContent = "BR " + active.battleRank;
 
-    document.getElementById("kills").textContent = activeChar.kills;
-    document.getElementById("deaths").textContent = activeChar.deaths;
-    document.getElementById("kd").textContent = activeChar.kd;
-    document.getElementById("headshots").textContent = activeChar.headshots;
+    document.getElementById("kills").textContent = active.kills.toLocaleString();
+    document.getElementById("deaths").textContent = active.deaths.toLocaleString();
+    document.getElementById("kd").textContent = active.kd;
+    document.getElementById("headshots").textContent = active.headshots.toLocaleString();
     document.getElementById("playtime").textContent =
-      activeChar.playtimeHours + " hrs";
+      active.playtimeHours + " hrs";
 
+    // ✅ ONLINE STATUS (CORRECT FIELD)
     const status = document.getElementById("onlineStatus");
-    status.textContent = activeChar.online ? "🟢 ONLINE" : "⚫ OFFLINE";
-    status.className = activeChar.online ? "online" : "offline";
+    status.textContent = active.online ? "🟢 ONLINE" : "⚫ OFFLINE";
+    status.className = active.online ? "online" : "offline";
 
   } catch (err) {
-    document.body.innerHTML = "Stats unavailable";
     console.error(err);
+    document.body.innerHTML = "Stats unavailable";
   }
 }
 
@@ -134,4 +135,5 @@ setInterval(loadStats, 60000);
 </script>
 </body>
 </html>
+
 
