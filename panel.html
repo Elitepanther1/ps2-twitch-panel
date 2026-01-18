@@ -94,21 +94,19 @@ async function loadStats() {
   try {
     let active = null;
 
+    // Pick the first ONLINE character, otherwise first one found
     for (const name of CHARACTERS) {
       const data = await fetchChar(name);
-
-      // pick online character first
+      if (!active) active = data;
       if (data.online === true) {
         active = data;
         break;
       }
-
-      if (!active) active = data;
     }
 
     if (!active) throw new Error("No character data");
 
-    // ✅ DIRECT VALUES (THIS WAS THE BUG)
+    // ✅ USE DIRECT FIELDS FROM API
     document.getElementById("charName").textContent = active.name;
     document.getElementById("battleRank").textContent = "BR " + active.battleRank;
 
@@ -119,21 +117,29 @@ async function loadStats() {
     document.getElementById("playtime").textContent =
       active.playtimeHours + " hrs";
 
-    // ✅ ONLINE STATUS (CORRECT FIELD)
+    // ✅ ONLINE STATUS (FIXED)
     const status = document.getElementById("onlineStatus");
-    status.textContent = active.online ? "🟢 ONLINE" : "⚫ OFFLINE";
-    status.className = active.online ? "online" : "offline";
+    if (active.online) {
+      status.textContent = "🟢 ONLINE";
+      status.className = "online";
+    } else {
+      status.textContent = "⚫ OFFLINE";
+      status.className = "offline";
+    }
 
   } catch (err) {
     console.error(err);
-    document.body.innerHTML = "Stats unavailable";
+    document.body.innerHTML =
+      "<div style='color:#f87171;text-align:center;'>Stats unavailable</div>";
   }
 }
 
 loadStats();
 setInterval(loadStats, 60000);
 </script>
+
 </body>
 </html>
+
 
 
