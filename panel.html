@@ -5,97 +5,95 @@
   <title>Planetside 2 Stats</title>
 
   <style>
-    body {
-      margin: 0;
-      padding: 10px;
-      background-color: #0e0e10;
-      color: white;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-    }
-
-    .panel {
-      border: 1px solid #2a2a2a;
-      border-radius: 6px;
-      padding: 10px;
-      background-color: #18181b;
-    }
-
-    .title {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .stat {
-      display: flex;
-      justify-content: space-between;
-      margin: 4px 0;
-    }
-
-    .label {
-      color: #adadb8;
-    }
-
-    .value {
-      font-weight: bold;
-    }
-	  .panel.vs {
-  border-color: #8b5cf6;
-  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+body {
+  margin: 0;
+  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+  color: white;
 }
 
-.panel.nc {
-  border-color: #3b82f6;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+.panel {
+  width: 320px;
+  background: rgba(15, 15, 20, 0.95);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.6);
 }
 
-.panel.tr {
-  border-color: #ef4444;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
-}
-
-.faction {
-  text-align: center;
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 8px;
   margin-bottom: 8px;
 }
 
-.faction img {
+.header img {
   width: 48px;
-  height: auto;
-  margin-bottom: 4px;
+  height: 48px;
 }
 
-.faction-name {
-  font-size: 12px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
+.header h1 {
+  font-size: 16px;
+  margin: 0;
 }
+
+.header span {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.stats div {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
   </style>
 </head>
 <body>
-
-  <div class="panel">
-    <div class="title">Planetside 2 Stats</div>
-	  <div class="faction">
-  		<img id="factionLogo" src="" alt="Faction Logo" />
-  		<div id="factionName" class="faction-name"></div>
-		</div>
-
-
-    <div class="stat"><span class="label">Name</span><span id="name" class="value">Loading...</span></div>
-    <div class="stat"><span class="label">Battle Rank</span><span id="br" class="value">-</span></div>
-    <div class="stat"><span class="label">Kills</span><span id="kills" class="value">-</span></div>
-    <div class="stat"><span class="label">Deaths</span><span id="deaths" class="value">-</span></div>
-    <div class="stat"><span class="label">K/D</span><span id="kd" class="value">-</span></div>
-    <div class="stat"><span class="label">Headshots</span><span id="headshots" class="value">-</span></div>
-    <div class="stat"><span class="label">Playtime</span><span id="playtime" class="value">-</span></div>
+<div class="panel">
+  <div class="header">
+    <img id="factionLogo" />
+    <div>
+      <h1 id="charName">Loading...</h1>
+      <span id="battleRank"></span>
+    </div>
   </div>
+
+  <div class="stats">
+    <div><span>Kills</span><b id="kills">0</b></div>
+    <div><span>Deaths</span><b id="deaths">0</b></div>
+    <div><span>K/D</span><b id="kd">0.00</b></div>
+    <div><span>Headshots</span><b id="headshots">0</b></div>
+    <div><span>Playtime</span><b id="playtime">0 hrs</b></div>
+  </div>
+</div>
+
 
   <script>
   const CHARACTER_NAME = "BeanFilledWhackBonk";
   const API_URL = "https://ps2-stats-api.vercel.app/api/character?name=" + CHARACTER_NAME;
+
+	const FACTIONS = {
+  1: {
+    name: "Vanu Sovereignty",
+    color: "#7B3FE4",
+    logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/vs.png"
+  },
+  2: {
+    name: "New Conglomerate",
+    color: "#1F6AE1",
+    logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/nc.png"
+  },
+  3: {
+    name: "Terran Republic",
+    color: "#C62828",
+    logo: "https://raw.githubusercontent.com/cooltrain7/Planetside-2-API-Images/master/factions/tr.png"
+  }
+};
 
   async function loadStats() {
     try {
@@ -158,4 +156,5 @@
 
 </body>
 </html>
+
 
